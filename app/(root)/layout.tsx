@@ -1,5 +1,5 @@
-import { Footer } from "@/features/auth/home/components/footer";
-import { Header } from "@/features/auth/home/components/header";
+import { Footer } from "@/features/home/components/footer";
+import { Header } from "@/features/home/components/header";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
