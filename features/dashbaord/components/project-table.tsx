@@ -91,12 +91,10 @@ export default function ProjectTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-
   const [editData, setEditData] = useState<EditProjectData>({
     title: "",
     description: "",
   });
-
   const [isLoading, setIsLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState<
     "edit" | "delete" | "duplicate" | "favorite" | null
@@ -112,10 +110,7 @@ export default function ProjectTable({
   };
 
   const handleUpdateProject = async () => {
-    if (!selectedProject || !onUpdateProject) {
-      toast.error("Project update is unavailable.");
-      return;
-    }
+    if (!selectedProject || !onUpdateProject) return;
 
     const title = editData.title.trim();
 
@@ -146,17 +141,13 @@ export default function ProjectTable({
   };
 
   const handleDeleteProject = async () => {
-    if (!selectedProject || !onDeleteProject) {
-      toast.error("Project deletion is unavailable.");
-      return;
-    }
+    if (!selectedProject || !onDeleteProject) return;
 
     setIsLoading(true);
     setLoadingAction("delete");
 
     try {
       await onDeleteProject(selectedProject.id);
-
       setDeleteDialogOpen(false);
       setSelectedProject(null);
       toast.success("Project deleted successfully.");
@@ -170,10 +161,7 @@ export default function ProjectTable({
   };
 
   const handleDuplicateProject = async (project: Project) => {
-    if (!onDuplicateProject) {
-      toast.error("Project duplication is unavailable.");
-      return;
-    }
+    if (!onDuplicateProject) return;
 
     setIsLoading(true);
     setLoadingAction("duplicate");
@@ -191,10 +179,7 @@ export default function ProjectTable({
   };
 
   const handleMarkAsFavorite = async (project: Project) => {
-    if (!onMarkasFavorite) {
-      toast.error("Favorite action is unavailable.");
-      return;
-    }
+    if (!onMarkasFavorite) return;
 
     setIsLoading(true);
     setLoadingAction("favorite");
@@ -212,61 +197,53 @@ export default function ProjectTable({
   };
 
   const copyProjectUrl = async (projectId: string) => {
-    const url = `${window.location.origin}/playground/${projectId}`;
-
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/playground/${projectId}`,
+      );
       toast.success("Project URL copied to clipboard.");
     } catch (error) {
       console.error("Error copying project URL:", error);
-      toast.error("Could not copy the project URL.");
+      toast.error("Could not copy project URL.");
     }
   };
 
   const formatCreatedDate = (date: Project["createdAt"]) => {
     const parsedDate = new Date(date);
 
-    if (Number.isNaN(parsedDate.getTime())) {
-      return "Unknown";
-    }
-
-    return format(parsedDate, "MMM d, yyyy");
+    return Number.isNaN(parsedDate.getTime())
+      ? "Unknown"
+      : format(parsedDate, "MMM d, yyyy");
   };
 
   return (
     <>
       <div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        {/* Table heading */}
         <div className="flex flex-col gap-1 border-b border-border px-5 py-4 sm:px-6">
-          <h3 className="text-base font-semibold tracking-tight text-foreground">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
             All projects
-          </h3>
+          </h2>
           <p className="text-sm text-muted-foreground">
             Manage your playgrounds and development workspaces.
           </p>
         </div>
 
-        {/* Projects table */}
         <div className="w-full overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-border bg-muted/40 hover:bg-muted/40">
-                <TableHead className="min-w-[220px] px-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6">
+                <TableHead className="min-w-[230px] px-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6">
                   Project
                 </TableHead>
-
-                <TableHead className="min-w-[130px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <TableHead className="min-w-[120px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Template
                 </TableHead>
-
-                <TableHead className="min-w-[140px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <TableHead className="min-w-[145px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Created
                 </TableHead>
-
                 <TableHead className="min-w-[160px] text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Owner
                 </TableHead>
-
                 <TableHead className="w-[60px] pr-5 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:pr-6">
                   Actions
                 </TableHead>
@@ -276,7 +253,6 @@ export default function ProjectTable({
             <TableBody>
               {projects.map((project) => {
                 const ownerName = project.user?.name || "Unknown user";
-                const ownerImage = project.user?.image || "/placeholder.svg";
                 const isFavorite = Boolean(project.Starmark?.[0]?.isMarked);
 
                 return (
@@ -284,7 +260,6 @@ export default function ProjectTable({
                     key={project.id}
                     className="border-border transition-colors hover:bg-muted/30"
                   >
-                    {/* Project name and description */}
                     <TableCell className="px-5 py-4 sm:px-6">
                       <div className="flex min-w-0 items-start gap-3">
                         <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-primary">
@@ -298,7 +273,6 @@ export default function ProjectTable({
                           >
                             {project.title}
                           </Link>
-
                           <p className="line-clamp-2 max-w-[300px] text-xs leading-5 text-muted-foreground">
                             {project.description || "No description provided"}
                           </p>
@@ -306,7 +280,6 @@ export default function ProjectTable({
                       </div>
                     </TableCell>
 
-                    {/* Template badge */}
                     <TableCell>
                       <Badge
                         variant="outline"
@@ -316,45 +289,38 @@ export default function ProjectTable({
                       </Badge>
                     </TableCell>
 
-                    {/* Created date */}
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-                        <span>{formatCreatedDate(project.createdAt)}</span>
+                        {formatCreatedDate(project.createdAt)}
                       </div>
                     </TableCell>
 
-                    {/* Owner */}
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border bg-muted">
+                        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-muted-foreground">
                           {project.user?.image ? (
                             <Image
-                              src={ownerImage}
+                              src={project.user.image || "/placeholder.png"}
                               alt={ownerName}
                               fill
                               sizes="32px"
                               className="object-cover"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                              <UserRound className="h-4 w-4" />
-                            </div>
+                            <UserRound className="h-4 w-4" />
                           )}
                         </div>
-
                         <span className="max-w-[130px] truncate text-sm text-foreground">
                           {ownerName}
                         </span>
                       </div>
                     </TableCell>
 
-                    {/* Project actions */}
                     <TableCell className="pr-5 text-right sm:pr-6">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
-                            type="button"
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -369,11 +335,11 @@ export default function ProjectTable({
                           className="w-52 border-border bg-popover p-1.5"
                         >
                           <DropdownMenuItem
+                            disabled={!onMarkasFavorite || isLoading}
                             onSelect={(event) => {
                               event.preventDefault();
                               void handleMarkAsFavorite(project);
                             }}
-                            disabled={!onMarkasFavorite || isLoading}
                             className="cursor-pointer gap-2"
                           >
                             <Star
@@ -413,8 +379,8 @@ export default function ProjectTable({
                           <DropdownMenuSeparator className="bg-border" />
 
                           <DropdownMenuItem
-                            onSelect={() => handleEditClick(project)}
                             disabled={!onUpdateProject || isLoading}
+                            onSelect={() => handleEditClick(project)}
                             className="cursor-pointer gap-2"
                           >
                             <Edit3 className="h-4 w-4 text-muted-foreground" />
@@ -422,10 +388,10 @@ export default function ProjectTable({
                           </DropdownMenuItem>
 
                           <DropdownMenuItem
-                            onSelect={() => {
-                              void handleDuplicateProject(project);
-                            }}
                             disabled={!onDuplicateProject || isLoading}
+                            onSelect={() =>
+                              void handleDuplicateProject(project)
+                            }
                             className="cursor-pointer gap-2"
                           >
                             <Copy className="h-4 w-4 text-muted-foreground" />
@@ -433,9 +399,7 @@ export default function ProjectTable({
                           </DropdownMenuItem>
 
                           <DropdownMenuItem
-                            onSelect={() => {
-                              void copyProjectUrl(project.id);
-                            }}
+                            onSelect={() => void copyProjectUrl(project.id)}
                             className="cursor-pointer gap-2"
                           >
                             <LinkIcon className="h-4 w-4 text-muted-foreground" />
@@ -445,11 +409,11 @@ export default function ProjectTable({
                           <DropdownMenuSeparator className="bg-border" />
 
                           <DropdownMenuItem
+                            disabled={!onDeleteProject || isLoading}
                             onSelect={() => {
                               setSelectedProject(project);
                               setDeleteDialogOpen(true);
                             }}
-                            disabled={!onDeleteProject || isLoading}
                             className="cursor-pointer gap-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -481,7 +445,6 @@ export default function ProjectTable({
           </Table>
         </div>
 
-        {/* Table footer */}
         {projects.length > 0 && (
           <div className="border-t border-border bg-muted/20 px-5 py-3 sm:px-6">
             <p className="text-xs text-muted-foreground">
@@ -496,15 +459,12 @@ export default function ProjectTable({
       <Dialog
         open={editDialogOpen}
         onOpenChange={(open) => {
-          if (!isLoading) {
-            setEditDialogOpen(open);
-          }
+          if (!isLoading) setEditDialogOpen(open);
         }}
       >
         <DialogContent className="border-border bg-background sm:max-w-[460px]">
           <DialogHeader>
             <DialogTitle className="text-foreground">Edit project</DialogTitle>
-
             <DialogDescription className="text-muted-foreground">
               Update your project's name and description.
             </DialogDescription>
@@ -513,7 +473,6 @@ export default function ProjectTable({
           <div className="grid gap-5 py-3">
             <div className="grid gap-2">
               <Label htmlFor="project-title">Project title</Label>
-
               <Input
                 id="project-title"
                 value={editData.title}
@@ -532,7 +491,6 @@ export default function ProjectTable({
 
             <div className="grid gap-2">
               <Label htmlFor="project-description">Description</Label>
-
               <Textarea
                 id="project-description"
                 value={editData.description}
@@ -560,29 +518,22 @@ export default function ProjectTable({
             >
               Cancel
             </Button>
-
             <Button
               type="button"
               onClick={() => void handleUpdateProject()}
               disabled={isLoading || !editData.title.trim()}
-              className="gap-2"
             >
-              {loadingAction === "edit" && (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              )}
               {loadingAction === "edit" ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation dialog */}
+      {/* Delete confirmation */}
       <AlertDialog
         open={deleteDialogOpen}
         onOpenChange={(open) => {
-          if (!isLoading) {
-            setDeleteDialogOpen(open);
-          }
+          if (!isLoading) setDeleteDialogOpen(open);
         }}
       >
         <AlertDialogContent className="border-border bg-background">
@@ -590,7 +541,6 @@ export default function ProjectTable({
             <AlertDialogTitle className="text-foreground">
               Delete project?
             </AlertDialogTitle>
-
             <AlertDialogDescription className="text-muted-foreground">
               Are you sure you want to delete{" "}
               <span className="font-semibold text-foreground">
@@ -602,18 +552,14 @@ export default function ProjectTable({
 
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
                 void handleDeleteProject();
               }}
               disabled={isLoading || !onDeleteProject}
-              className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {loadingAction === "delete" && (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              )}
               {loadingAction === "delete" ? "Deleting..." : "Delete project"}
             </AlertDialogAction>
           </AlertDialogFooter>

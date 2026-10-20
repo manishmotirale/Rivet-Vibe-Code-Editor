@@ -1,14 +1,14 @@
 "use client";
 import Image from "next/image";
-import {
-  getAllPlaygroundForUser,
-  deleteProjectById,
-  editProjectById,
-  duplicateProjectById,
-} from "@/features/playground/actions";
 import AddRepo from "@/features/dashbaord/components/add-repo";
 import AddNewButton from "@/features/dashbaord/components/add-new-btn";
 import ProjectTable from "@/features/dashbaord/components/project-table";
+import {
+  deleteProjectById,
+  duplicateProjectById,
+  editProjectById,
+  getAllPlaygroundForUser,
+} from "@/features/dashbaord/actions";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -21,7 +21,6 @@ const EmptyState = () => (
     />
 
     <h2 className="text-xl font-semibold text-foreground">No projects found</h2>
-
     <p className="mt-2 text-sm text-muted-foreground">
       Create a new project to get started!
     </p>
