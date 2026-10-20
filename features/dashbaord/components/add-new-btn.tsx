@@ -8,7 +8,7 @@ import { Plus, ArrowUpRight } from "lucide-react";
 
 import TemplateSelectionModal from "@/components/modal/template-selector-modal";
 import { Button } from "@/components/ui/button";
-import { createPlayground } from "@/features/playground/actions";
+import { createPlayground } from "../actions";
 
 type PlaygroundTemplate = {
   title: string;
