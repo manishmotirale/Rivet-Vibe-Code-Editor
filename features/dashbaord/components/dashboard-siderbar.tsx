@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Code2,
   Compass,
+  Database,
+  Flame,
   FolderPlus,
   History,
   Home,
@@ -18,8 +20,6 @@ import {
   Star,
   Terminal,
   Zap,
-  Database,
-  Flame,
   ChevronRight,
 } from "lucide-react";
 
@@ -45,34 +45,38 @@ interface PlaygroundData {
   starred: boolean;
 }
 
+interface DashboardSidebarProps {
+  initialPlaygroundData: PlaygroundData[];
+}
+
 const lucideIconMap: Record<string, LucideIcon> = {
   Zap,
   Lightbulb,
   Database,
   Compass,
   Flame,
-  FlameIcon: Flame,
   Terminal,
   Code2,
 };
 
 export function DashboardSidebar({
   initialPlaygroundData,
-}: {
-  initialPlaygroundData: PlaygroundData[];
-}) {
+}: DashboardSidebarProps) {
   const pathname = usePathname();
 
-  const [starredPlaygrounds] = useState(
-    initialPlaygroundData.filter((playground) => playground.starred),
+  const starredPlaygrounds = useMemo(
+    () => initialPlaygroundData.filter((playground) => playground.starred),
+    [initialPlaygroundData],
   );
 
-  const [recentPlaygrounds] = useState(initialPlaygroundData);
+  const recentPlaygrounds = initialPlaygroundData;
 
-  const isPlaygroundActive = (id: string) => pathname === `/playground/${id}`;
+  const isPlaygroundActive = (id: string) =>
+    pathname === `/playground/${id}` ||
+    pathname.startsWith(`/playground/${id}/`);
 
   const renderPlayground = (playground: PlaygroundData) => {
-    const IconComponent = lucideIconMap[playground.icon] || Code2;
+    const IconComponent = lucideIconMap[playground.icon] ?? Code2;
     const active = isPlaygroundActive(playground.id);
 
     return (
@@ -84,9 +88,11 @@ export function DashboardSidebar({
           className="group relative h-9 rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:font-medium data-[active=true]:text-primary"
         >
           {active && (
-            <span className="absolute bottom-2 left-0 top-2 w-0.5 rounded-full bg-primary" />
+            <span
+              aria-hidden="true"
+              className="absolute bottom-2 left-0 top-2 w-0.5 rounded-full bg-primary"
+            />
           )}
-
           <IconComponent className="h-4 w-4 shrink-0" />
           <span className="truncate">{playground.name}</span>
         </SidebarMenuButton>
@@ -101,31 +107,27 @@ export function DashboardSidebar({
       className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground"
     >
       {/* Brand */}
-      <SidebarHeader className="px-2 pt-3">
+      <SidebarHeader className="px-3 pt-4">
         <Link
           href="/"
           aria-label="Rivet home"
-          className="flex h-12 items-center gap-3 rounded-lg px-3 outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          className="flex h-20 items-center justify-start rounded-lg px-2 outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         >
           <Image
             src="/rivet-logo.gif"
             alt="Rivet"
-            width={32}
-            height={32}
+            width={240}
+            height={80}
             priority
-            className="h-8 w-8 shrink-0 object-contain"
+            className="h-16 w-full max-w-[200px] object-contain object-left"
           />
-
-          <span className="text-base font-semibold tracking-tight">
-            Rivet<span className="ml-1 text-primary">.</span>
-          </span>
         </Link>
 
         <div className="mx-3 mt-3 border-t border-sidebar-border" />
       </SidebarHeader>
 
       <SidebarContent className="px-2">
-        {/* Main navigation */}
+        {/* Workspace navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Workspace
@@ -171,9 +173,12 @@ export function DashboardSidebar({
           </SidebarGroupLabel>
 
           <SidebarGroupAction
-            title="Add starred playground"
-            aria-label="Add starred playground"
+            title="View starred projects"
+            aria-label="View starred projects"
             className="rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-primary"
+            onClick={() => {
+              window.location.href = "/playgrounds?filter=starred";
+            }}
           >
             <Plus className="h-4 w-4" />
           </SidebarGroupAction>
@@ -201,9 +206,12 @@ export function DashboardSidebar({
           </SidebarGroupLabel>
 
           <SidebarGroupAction
-            title="Create new playground"
-            aria-label="Create new playground"
+            title="Create a new playground"
+            aria-label="Create a new playground"
             className="rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-primary"
+            onClick={() => {
+              window.location.href = "/dashboard";
+            }}
           >
             <FolderPlus className="h-4 w-4" />
           </SidebarGroupAction>
@@ -223,8 +231,9 @@ export function DashboardSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   render={<Link href="/playgrounds" />}
+                  isActive={pathname === "/playgrounds"}
                   tooltip="View all playgrounds"
-                  className="h-9 rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                  className="h-9 rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                 >
                   <span>View all playgrounds</span>
                   <ChevronRight className="ml-auto h-3.5 w-3.5" />
