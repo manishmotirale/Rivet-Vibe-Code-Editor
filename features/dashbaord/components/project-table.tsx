@@ -10,12 +10,11 @@ import {
   Trash2,
   ExternalLink,
   Copy,
-  Link as LinkIcon,
+  Download,
   Eye,
   Code2,
   CalendarDays,
   UserRound,
-  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -96,9 +95,6 @@ export default function ProjectTable({
     description: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingAction, setLoadingAction] = useState<
-    "edit" | "delete" | "duplicate" | "favorite" | null
-  >(null);
 
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
@@ -120,7 +116,6 @@ export default function ProjectTable({
     }
 
     setIsLoading(true);
-    setLoadingAction("edit");
 
     try {
       await onUpdateProject(selectedProject.id, {
@@ -136,7 +131,22 @@ export default function ProjectTable({
       toast.error("Failed to update project.");
     } finally {
       setIsLoading(false);
-      setLoadingAction(null);
+    }
+  };
+
+  const handleMarkAsFavorite = async (project: Project) => {
+    if (!onMarkasFavorite) return;
+
+    setIsLoading(true);
+
+    try {
+      await onMarkasFavorite(project.id);
+      toast.success("Favorite status updated.");
+    } catch (error) {
+      console.error("Error updating favorite:", error);
+      toast.error("Failed to update favorite status.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -144,7 +154,6 @@ export default function ProjectTable({
     if (!selectedProject || !onDeleteProject) return;
 
     setIsLoading(true);
-    setLoadingAction("delete");
 
     try {
       await onDeleteProject(selectedProject.id);
@@ -156,7 +165,6 @@ export default function ProjectTable({
       toast.error("Failed to delete project.");
     } finally {
       setIsLoading(false);
-      setLoadingAction(null);
     }
   };
 
@@ -164,7 +172,6 @@ export default function ProjectTable({
     if (!onDuplicateProject) return;
 
     setIsLoading(true);
-    setLoadingAction("duplicate");
 
     try {
       await onDuplicateProject(project.id);
@@ -174,25 +181,6 @@ export default function ProjectTable({
       toast.error("Failed to duplicate project.");
     } finally {
       setIsLoading(false);
-      setLoadingAction(null);
-    }
-  };
-
-  const handleMarkAsFavorite = async (project: Project) => {
-    if (!onMarkasFavorite) return;
-
-    setIsLoading(true);
-    setLoadingAction("favorite");
-
-    try {
-      await onMarkasFavorite(project.id);
-      toast.success("Favorite status updated.");
-    } catch (error) {
-      console.error("Error updating favorite:", error);
-      toast.error("Failed to update favorite status.");
-    } finally {
-      setIsLoading(false);
-      setLoadingAction(null);
     }
   };
 
@@ -253,7 +241,6 @@ export default function ProjectTable({
             <TableBody>
               {projects.map((project) => {
                 const ownerName = project.user?.name || "Unknown user";
-                const isFavorite = Boolean(project.Starmark?.[0]?.isMarked);
 
                 return (
                   <TableRow
@@ -301,7 +288,7 @@ export default function ProjectTable({
                         <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-muted-foreground">
                           {project.user?.image ? (
                             <Image
-                              src={project.user.image || "/placeholder.png"}
+                              src={project.user.image}
                               alt={ownerName}
                               fill
                               sizes="32px"
@@ -319,15 +306,11 @@ export default function ProjectTable({
 
                     <TableCell className="pr-5 text-right sm:pr-6">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
-                            aria-label={`Actions for ${project.title}`}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                        <DropdownMenuTrigger
+                          aria-label={`Actions for ${project.title}`}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent
@@ -336,44 +319,44 @@ export default function ProjectTable({
                         >
                           <DropdownMenuItem
                             disabled={!onMarkasFavorite || isLoading}
-                            onSelect={(event) => {
-                              event.preventDefault();
+                            onSelect={() => {
                               void handleMarkAsFavorite(project);
                             }}
                             className="cursor-pointer gap-2"
                           >
-                            <Star
-                              className={`h-4 w-4 ${
-                                isFavorite
-                                  ? "fill-primary text-primary"
-                                  : "text-muted-foreground"
-                              }`}
+                            <MarkedToggleButton
+                              markedForRevision={Boolean(
+                                project.Starmark?.[0]?.isMarked,
+                              )}
+                              id={project.id}
                             />
-                            {isFavorite
-                              ? "Update favorite"
-                              : "Add to favorites"}
+                            <span>
+                              {project.Starmark?.[0]?.isMarked
+                                ? "Remove from favorites"
+                                : "Add to favorites"}
+                            </span>
                           </DropdownMenuItem>
 
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/playground/${project.id}`}
-                              className="flex cursor-pointer items-center gap-2"
-                            >
-                              <Eye className="h-4 w-4 text-muted-foreground" />
-                              Open project
-                            </Link>
+                          <DropdownMenuItem
+                            render={<Link href={`/playground/${project.id}`} />}
+                            className="cursor-pointer gap-2"
+                          >
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                            Open project
                           </DropdownMenuItem>
 
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/playground/${project.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex cursor-pointer items-center gap-2"
-                            >
-                              <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                              Open in new tab
-                            </Link>
+                          <DropdownMenuItem
+                            render={
+                              <Link
+                                href={`/playground/${project.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              />
+                            }
+                            className="cursor-pointer gap-2"
+                          >
+                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                            Open in new tab
                           </DropdownMenuItem>
 
                           <DropdownMenuSeparator className="bg-border" />
@@ -389,9 +372,9 @@ export default function ProjectTable({
 
                           <DropdownMenuItem
                             disabled={!onDuplicateProject || isLoading}
-                            onSelect={() =>
-                              void handleDuplicateProject(project)
-                            }
+                            onSelect={() => {
+                              void handleDuplicateProject(project);
+                            }}
                             className="cursor-pointer gap-2"
                           >
                             <Copy className="h-4 w-4 text-muted-foreground" />
@@ -399,10 +382,12 @@ export default function ProjectTable({
                           </DropdownMenuItem>
 
                           <DropdownMenuItem
-                            onSelect={() => void copyProjectUrl(project.id)}
+                            onSelect={() => {
+                              void copyProjectUrl(project.id);
+                            }}
                             className="cursor-pointer gap-2"
                           >
-                            <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                            <Download className="h-4 w-4 text-muted-foreground" />
                             Copy project URL
                           </DropdownMenuItem>
 
@@ -455,7 +440,6 @@ export default function ProjectTable({
         )}
       </div>
 
-      {/* Edit project dialog */}
       <Dialog
         open={editDialogOpen}
         onOpenChange={(open) => {
@@ -523,13 +507,12 @@ export default function ProjectTable({
               onClick={() => void handleUpdateProject()}
               disabled={isLoading || !editData.title.trim()}
             >
-              {loadingAction === "edit" ? "Saving..." : "Save changes"}
+              {isLoading ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation */}
       <AlertDialog
         open={deleteDialogOpen}
         onOpenChange={(open) => {
@@ -560,7 +543,7 @@ export default function ProjectTable({
               disabled={isLoading || !onDeleteProject}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {loadingAction === "delete" ? "Deleting..." : "Delete project"}
+              {isLoading ? "Deleting..." : "Delete project"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
