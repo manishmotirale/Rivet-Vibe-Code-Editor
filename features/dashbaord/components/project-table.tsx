@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 
 import type { Project } from "../types";
-import { MarkedToggleButton } from "./toggle-star";
+// import { MarkedToggleButton } from "./toggle-star";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ interface ProjectTableProps {
     data: { title: string; description: string },
   ) => Promise<void>;
   onDeleteProject?: (id: string) => Promise<void>;
-  onDuplicateProject?: (id: string) => Promise<void>;
+  onDuplicateProject?: (id: string) => Promise<unknown>;
   onMarkasFavorite?: (id: string) => Promise<void>;
 }
 
@@ -148,6 +148,11 @@ export default function ProjectTable({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDeleteClick = async (project: Project) => {
+    setSelectedProject(project);
+    setDeleteDialogOpen(true);
   };
 
   const handleDeleteProject = async () => {
@@ -324,12 +329,12 @@ export default function ProjectTable({
                             }}
                             className="cursor-pointer gap-2"
                           >
-                            <MarkedToggleButton
+                            {/* <MarkedToggleButton
                               markedForRevision={Boolean(
                                 project.Starmark?.[0]?.isMarked,
                               )}
                               id={project.id}
-                            />
+                            /> */}
                             <span>
                               {project.Starmark?.[0]?.isMarked
                                 ? "Remove from favorites"
